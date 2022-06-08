@@ -1,5 +1,5 @@
 from tkinter import Image
-# import pyautogui
+
 import pygetwindow as gw
 from PIL import ImageGrab
 import numpy as np
@@ -18,8 +18,7 @@ class jorjin :
         left,right,top,bottom = int(self.Process.left)+60 ,int(self.Process.left)-60 + int(self.Process.width),int(self.Process.top)+250,int(self.Process.top)+ int(self.Process.height)-250
         bbox = (left,top,right,bottom)
         feed = ImageGrab.grab(bbox)
-        # feed.show()
-
+ 
         feed =  np.array(feed) 
         Processed = np.copy(feed)
         Processed[:,:,0] = feed[:,:,2]
