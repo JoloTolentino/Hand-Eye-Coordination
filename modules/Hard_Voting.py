@@ -30,14 +30,3 @@ class Hard_Voting:
     
 
     
-
-test = Hard_Voting()
-
-test.verificaiton([3])
-test.verificaiton([3])
-test.verificaiton([4])
-test.verificaiton([3])
-test.verificaiton([3])
-test.verificaiton([3])
-test.verificaiton([3])
-test.verificaiton([3])

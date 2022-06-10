@@ -4,7 +4,7 @@ import time
 
 
 class QR_Reader:
-    def __init__(self,coms):
+    def __init__(self):
         QR_detetctor = cv2.QRCodeDetector()
         self.Condition = False
         self.Name = "QR-Reader"
@@ -18,7 +18,6 @@ class QR_Reader:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
                 if data == "Activate":
-                    coms.send("<2>") 
                     print('activate')
                     time.sleep(2)
                     self.Condition = True  

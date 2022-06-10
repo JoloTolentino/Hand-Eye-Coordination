@@ -9,6 +9,7 @@ class ProstheticBT:
         self.Connected = False
         self.Listening = False
         self.message = None
+        self.connect()
     
     def check(self):
         deviceList = bluetooth.discover_devices(lookup_names=True)
@@ -26,7 +27,7 @@ class ProstheticBT:
             self.BTPairConnection.connect((self.ESP32MacAddress,self.Port))
             print("Conneced to :",self.BlueToothName)
             self.Listening =False
-            self.send("<2>")
+            # self.send("<2>")
             print("Esp32 is now listening ....")
             while(self.Listening):
                 self.recieve()
