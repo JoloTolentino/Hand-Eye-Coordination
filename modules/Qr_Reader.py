@@ -10,16 +10,16 @@ class QR_Reader:
         self.Name = "QR-Reader"
         print('Intializing {}'.format(self.name()))
         Android_Glasses = jorjin("QR-Reader")
+        self.stream  = None 
         if self.Condition != True:
             while True: 
                 stream = Android_Glasses.cv_frame()
+                self.Feed = stream
                 data,_,_= QR_detetctor.detectAndDecode(stream)
-                cv2.imshow("QR-Reader stream",stream)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+            
                 if data == "Activate":
                     print('activate')
-                    time.sleep(2)
+                    time.sleep(2)                    
                     self.Condition = True  
                     break    
 
@@ -32,4 +32,6 @@ class QR_Reader:
     def name(self):
         return self.Name
 
+    def feed(self):
+        return self.Feed
 

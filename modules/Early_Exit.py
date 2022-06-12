@@ -17,6 +17,7 @@ except:
 
 class Objectness_Filter: 
     def __init__ (self, data): 
+        
         self.Object_Status = False
         self.Objectnes_filter(data)
     
@@ -30,7 +31,6 @@ class Objectness_Filter:
 
         Scaled_Color_Contrast_Mask = cv2.convertScaleAbs(Color_Contrast_Features)
         Scaled_Edge_Features = cv2.convertScaleAbs(Dilated_Edge_Features)
-        
         
         kernel = np.ones((5,5),np.uint8)
         Closing = cv2.morphologyEx(Scaled_Color_Contrast_Mask,cv2.MORPH_CLOSE,kernel=kernel)
@@ -48,15 +48,13 @@ class Objectness_Filter:
         consolidated = cv2.morphologyEx(consolidated, cv2.MORPH_OPEN, kernel)*255
         
         final = cv2.bitwise_and(consolidated,Scaled_Edge_Features)
-        
-        gestureActivation = "False"
         contours,_ = cv2.findContours(final,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         
         try: 
             c = max(contours, key = cv2.contourArea)
             _,_,w,h = cv2.boundingRect(c)    
             area = h*w
-            if area > 1000 :os.system('cls') ; self.Object_Status = True; gestureActivation = 'True'; print("Objects",end = "\r")
+            if area > 1000 :os.system('cls') ; self.Object_Status = True; print("Objects",end = "\r")
         except: 
             print('No objects',end='\r')
             
@@ -94,7 +92,7 @@ class Objectness_Filter:
 
 class Predictor: 
     def __init__ (self):
-
+        print("Prediction Module")
         self.obj_gesture_map = {
         "person":"<1>","backpack ":"<1>","chair ":"<3>","couch ":"<3>","potted plant": "<3>", 
         "bed": "<1>","dining table" :"<1>","toilet":"<4>","laptop": "<4>","remote": "<4>",
@@ -102,7 +100,7 @@ class Predictor:
         "sink": "<1>","regfigerator": "<3>","book" :"<1>", "clock": "<4>","vase": "<1>","scissors": "<1>",
         "teddy bear": "<1>","door handle":"<1>","handbag" :"<1>","bottle": "<1>","cup":"<1>","utensils": "<1>",
         "Garbage": "<1>","light switch": "<4>","bowl": "<3>"}
-        
+        print('Intializing {}'.format(self.name()))
         
         self.network = EarlyExitResnet()
         self.Name = "Early-Exit-Ensemble Module"
@@ -113,43 +111,41 @@ class Predictor:
         with open('./modules/Torch_Mapping.json','r') as data:
             self.Torch_Map = json.load(data)
 
+        self.Labels = {self.Json[val]:val for val in self.Json}
         self.network.eval().cuda()
         self.device = torch.device("cuda") 
 
         glasses = jorjin("Early Exit Ensemble Module")
         while True: 
             stream = glasses.cv_frame()
-
-            
+            ## change location 
             self.Objectness_Filter = Objectness_Filter(stream)
             if self.Objectness_Filter.Object_Status:
                 print('initializing {}'.format(self.Name))
                 self.Hard_Voting_Filter = Hard_Voting()
                 self.Hard_Voting_Queue = []
                 self.Prediction()
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-        
-
+                break
+            
     def Prediction(self): 
-        
-        
         self.Condition = False
         self.Predicting = True 
         glasses = jorjin("Early Exit Ensemble") 
-        
         while self.Predicting: 
             data  = glasses.pil_frame()
+            self.Feed =glasses.cv_frame()
             input_tensor = self.Preprocess(data.convert('RGB'))
             input_batch = input_tensor.unsqueeze(0).cuda()
             self.filter(self.Predict(input_batch))
             if self.Condition:
-                self.comms.send(str(self.message))
                 self.Objectness_Filter.Object_Status = False
                 self.Predicting = False
-                
-            
+         
 
+    def message(self):
+        if self.Condition:
+            return str(self.Message)
+            
     def Preprocess(self,data): 
         mean = [0.485,0.456,0.406]
         std = [0.229,0.224,0.225]
@@ -165,19 +161,26 @@ class Predictor:
     def filter(self,data):
         self.Condition,self.Hard_Voting_Queue = self.Hard_Voting_Filter.verificaiton(data)
         if self.Condition: 
-            self.message = np.unique(self.Hard_Voting_Queue)[0]
+            print(self.Labels)
+            print("check : {}".format(self.Torch_Map[str(np.unique(self.Hard_Voting_Queue)[0])]))
+            self.Message = self.obj_gesture_map[self.Labels[self.Torch_Map[str(np.unique(self.Hard_Voting_Queue)[0])]]]
+            print(self.Message)
     
+    def feed(self):
+        return self.Feed
+
     def condition(self):
         return self.Condition
 
     def Predict(self,input_batch):
         with torch.no_grad():
             logits = self.network(input_batch) 
-        prediction = logits[-1]                                   
-        prediction = torch.topk(prediction, 1)[1][0].cpu().detach().numpy()   
-        print(prediction) 
-
-        return  prediction 
+        prediction = logits[-1]
+        softmax_probabilities = torch.nn.functional.softmax(prediction[0], dim=0)
+        prediction = torch.topk(prediction, 1)[1][0].cpu().detach().numpy()
+        probability = softmax_probabilities[prediction].cpu().detach().numpy()   
+        
+        return  prediction if probability[0]>0.9 else [np.nan]
 
     def name(self):
         return "Early-Exit-Ensemble Module"

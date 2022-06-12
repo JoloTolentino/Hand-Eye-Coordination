@@ -9,7 +9,7 @@ class Hard_Voting:
         print(self.memory)
     def verificaiton(self,data):
         if len(self.memory) < 5: self.memory.insert(0,data[0]);self.Condition = False
-        self.Condition = True if len(np.unique(self.memory))==1 and len(self.memory)== 5 else False
+        self.Condition = True if len(np.unique(self.memory))==1 and len(self.memory)== 5 and data>-1 else False
         print("memory: {} status : {} unique: {} ".format( self.memory,self.Condition,len(np.unique(self.memory))))
         
         if self.Condition:

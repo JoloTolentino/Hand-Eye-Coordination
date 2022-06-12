@@ -18,13 +18,11 @@ class jorjin :
         left,right,top,bottom = int(self.Process.left)+60 ,int(self.Process.left)-60 + int(self.Process.width),int(self.Process.top)+250,int(self.Process.top)+ int(self.Process.height)-250
         bbox = (left,top,right,bottom)
         feed = ImageGrab.grab(bbox)
- 
         feed =  np.array(feed) 
         Processed = np.copy(feed)
-        Processed[:,:,0] = feed[:,:,2]
-        Processed[:,:,2] = feed[:,:,0]
+        Processed = Processed[...,::-1]
 
-        return feed
+        return Processed
 
     def pil_frame(self):
         left,right,top,bottom = int(self.Process.left)+60 ,int(self.Process.left)-60 + int(self.Process.width),int(self.Process.top)+250,int(self.Process.top)+ int(self.Process.height)-250
