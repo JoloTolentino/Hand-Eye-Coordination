@@ -180,7 +180,7 @@ class Predictor:
         prediction = torch.topk(prediction, 1)[1][0].cpu().detach().numpy()
         probability = softmax_probabilities[prediction].cpu().detach().numpy()   
         
-        return  prediction if probability[0]>0.9 else [np.nan]
+        return  prediction if probability[0]>0.4 else [np.nan]
 
     def name(self):
         return "Early-Exit-Ensemble Module"
